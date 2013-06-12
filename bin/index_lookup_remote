@@ -26,13 +26,8 @@ from lib.pbtree import IndexBlockReader, PBTreeDictReader
 import boto
 
 class BotoMap(object):
-  def __init__(self, bucket, key_name, access_key=None, access_secret=None ):
-    if access_key and access_secret:
-      self.conn  = boto.connect_s3(access_key,access_secret)
-    else:
-      self.conn  = boto.connect_s3(anon=True)
-    bucket = self.conn.lookup(bucket)
-    self.key = bucket.lookup(key_name)
+  def __init__(self, s3, bucket, key_name, access_key=None, access_secret=None ):
+    self.key = bucket.get_key(key_name)
     self.block_size = 2**16
     self.cached_block = -1
   
@@ -59,11 +54,14 @@ class BotoMap(object):
 
     
 if __name__ == "__main__":
+  s3_anon = boto.connect_s3(anon=True)
+  bucket_name = 'aws-publicdatasets'
+  bucket = s3_anon.lookup(bucket_name)
+
   mmap = BotoMap(
-    'aws-publicdatasets',
-    '/common-crawl/projects/url-index/url-index.1356128792'
-#    '<YOUR AWS KEY>',
-#    '<YOUR AWS SECRET>',
+    s3_anon,
+    bucket,
+    '/common-crawl/projects/url-index/url-index.1356128792',
   )
   
   reader = PBTreeDictReader(
